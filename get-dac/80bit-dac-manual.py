@@ -1,5 +1,4 @@
 import RPi.GPIO as GPIO
-import time
 
 # Настройка пинов DAC
 dac_bits = [16, 20, 21, 25, 26, 17, 27, 22]
@@ -17,11 +16,7 @@ def voltage_to_number(voltage):
     return int(voltage / dynamic_range * 255)
 
 def number_to_dac(number):
-    # Преобразуем число в список битов (0/1)
-    binary = bin(number)[2:].zfill(8)
-    bits = [int(bit) for bit in binary]
-    print(f"Число: {number}, Бинарный код: {binary}, Биты: {bits}")
-    return bits
+    return [int(bit) for bit in bin(number)[2:].zfill(8)]
 
 try:
     while True:
