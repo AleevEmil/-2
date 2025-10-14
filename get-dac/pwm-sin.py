@@ -1,21 +1,22 @@
+import time
 import pwm_dac as pwm
 import signal_generator as sg
-import time
 
-amplitude = 3.2        
-signal_frequency = 10 
-sampling_frequency = 1000
+amplitude = 3
+sig_freq = 5
+sampl_freq = 250
 
 try:
-    dac = pwm.PWM_DAC(gpio_pin=18, pwm_frequency=10000, dynamic_range=3.3, verbose=True)
-    start_time = time.time()
-    
+    dc = pwm.PWM_DAC(12, 1000, 3.290, True)
+
     while True:
-        current_time = time.time() - start_time
-        signal_amplitude = sg.get_sin_wave_amplitude(signal_frequency, current_time)
-        voltage = signal_amplitude * amplitude
-        dac.set_voltage(voltage)
-        sg.wait_for_sampling_period(sampling_frequency)
+        try:
+
+            fx=sg.get_sin_wave_amplitude(sig_freq, time.time())
+            dc.set_voltage(fx*amplitude)
+            sg.wait_for_sampling_period(sampl_freq)
+        except ValueError:
+            print("Введите нормальное число ещё раз!\n") 
 
 finally:
-    dac.deinit()
+    dc.deinit()

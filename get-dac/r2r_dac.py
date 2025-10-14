@@ -1,57 +1,40 @@
-import RPi.GPIO as GPIO
+import RPi.GPIO as IO
 class R2R_DAC:
     def __init__(self, gpio_bits, dynamic_range, verbose = False):
         self.gpio_bits = gpio_bits
         self.dynamic_range = dynamic_range
         self.verbose = verbose
-        
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.gpio_bits, GPIO.OUT, initial = 0)
-
+        IO.setmode(IO.BCM)
+        IO.setup(self.gpio_bits, IO.OUT, initial = 0)
+    
     def deinit(self):
-        GPIO.output(self.gpio_bits, 0)
-        GPIO.cleanup()
-
+        IO.output(self.gpio_bits, 0)
+        IO.cleanup()
+    
     def set_number(self, number):
-        self.number = number
-        binary_number = self.dec2bin(number)
-        GPIO.output(self.gpio_bits, binary_number)
-        
-        if self.verbose:
-            print(f"Установлено число: {number}")
-            print(f"Двоичное представление: {binary_number}")
-
-    def set_voltage(self, voltage):
-        self.voltage = voltage
-        
-        if not (0.0 <= voltage <= self.dynamic_range):
-            print(f"Напряжение выходит за динамический диапазон ЦАП (0.00 - {self.dynamic_range:.2f} B)")
-            print("Устанавливаем 0.0 B")
-            voltage = 0.0
-            number = 0
-        else:
-            number = int((voltage / self.dynamic_range) * 255)
-        
-        self.set_number(number)
-        
-        if self.verbose:
-            print(f"Установлено напряжение: {voltage:.2f} В")
-
-    def dec2bin(self, number):
-        return [int(bit) for bit in bin(number)[2:].zfill(8)]
+        return [int(element) for element in bin(number)[2:].zfill(8)]
+    
+    def set_voltage(self, V):
+        if not(0.0 <= V <= self.dynamic_range):
+            print(f"Напряжение выходит за динамический диапазон ЦАП (0.0-{self.dynamic_range:.2f} В)")
+            print("устанавливаем 0.0")
+            V = 0
+        nV=int(255*V/self.dynamic_range)
+        v_ar = self.set_number(nV)
+        for i in self.gpio_bits:
+                IO.output(i, v_ar[self.gpio_bits.index(i)])
 
 
 if __name__ == "__main__":
     try:
-        dac = R2R_DAC([16, 20, 21, 25, 26, 17, 27, 22], 3.183, True)
-        
+        dac = R2R_DAC([16,20,21,25,26,17,27,22], 3.183, True)
+
         while True:
             try:
-                voltage = float(input("Введите напряжение в Вольтах: "))
+                voltage = float(input("Введите напряжение в вольтах: "))
                 dac.set_voltage(voltage)
-
             except ValueError:
-                print("Вы ввели не число. Попробуйте ещё раз\n")
+                print("Не число!\n") 
 
     finally:
-        dac.deinit()
+        dac.deinit()            
