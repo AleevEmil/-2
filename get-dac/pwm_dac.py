@@ -13,20 +13,34 @@ class PWM_DAC:
         self.pwm = GPIO.PWM(self.gpio_pin, self.pwm_frequency)
         self.pwm.start(0)  # Запускаем с 0% заполнения
         
+        if self.verbose:
+            print(f"PWM DAC инициализирован на пине {gpio_pin}")
+            print(f"Частота ШИМ: {pwm_frequency} Гц")
+            print(f"Динамический диапазон: {dynamic_range} В")
+    
     def deinit(self):
         self.pwm.stop()  # Останавливаем ШИМ
         GPIO.cleanup()  
-    
+        
+        if self.verbose:
+            print("PWM DAC остановлен")
 
     def set_voltage(self, voltage):
         self.voltage = voltage
         
+        # Проверяем границы напряжения
         if voltage > self.dynamic_range or voltage < 0:
-            print("HIHIHIHA")
+            print(f"Напряжение {voltage} В выходит за диапазон 0-{self.dynamic_range} В")
+            # Устанавливаем граничное значение
+            voltage = max(0, min(voltage, self.dynamic_range))
         
         if 0.0 <= voltage <= self.dynamic_range:
-
-            print(f"Коэффициент заполнения: {(voltage / self.dynamic_range) * 100}%")
+            # Вычисляем и устанавливаем коэффициент заполнения
+            duty_cycle = (voltage / self.dynamic_range) * 100
+            self.pwm.ChangeDutyCycle(duty_cycle)
+            
+            if self.verbose:
+                print(f"Установлено напряжение: {voltage:.2f} В, коэффициент заполнения: {duty_cycle:.1f}%")
 
 
 if __name__ == "__main__":
