@@ -8,8 +8,9 @@ class R2R_ADC:
         self.compare_time = compare_time
         self.show_leds = show_leds
         
-        self.bits_gpio = [26, 20, 19, 16, 13, 12, 25, 11] 
-        self.comp_gpio = 21 
+       
+        self.bits_gpio = [16, 20, 19, 16, 13, 12, 25, 11] 
+        self.comp_gpio = 21
         
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.bits_gpio, GPIO.OUT, initial=0)
@@ -27,41 +28,17 @@ class R2R_ADC:
             print(f"Подано число на ЦАП: {number} -> {binary_number}")
 
     def sequential_counting_adc(self):
-        """
-        Последовательно подает числа на ЦАП до тех пор,
-        пока напряжение ЦАП не превысит входное напряжение
-        """
-        if self.verbose:
-            print("Начало преобразования АЦП...")
+        print("Начало преобразования АЦП...")
         
         for number in range(256):
-            # Подаем число на ЦАП
             self.number_to_dac(number)
-            
-            # Ждем время для стабилизации компаратора
-            time.sleep(self.compare_time)
-            
-            # Читаем состояние компаратора
-            comp_output = GPIO.input(self.comp_gpio)
-            
-            if self.verbose:
-                print(f"Число: {number:3d}, Компаратор: {comp_output}")
-            
-            # Если компаратор показывает 0, значит напряжение ЦАП >= входного напряжения
-            if comp_output == 0:
-                if self.verbose:
-                    print(f"Напряжение превышено при числе: {number}")
-                return number
-        
-        # Если дошли до 255 и компаратор всё еще 1
-        if self.verbose:
-            print("Достигнуто максимальное значение 255")
+
+        print("Достигнуто максимальное значение 255")
         return 255
 
     def get_sc_voltage(self):
         digital_value = self.sequential_counting_adc()
         voltage = (digital_value / 255.0) * self.dynamic_range
-        
         if not self.show_leds:
             self.number_to_dac(0)
         
@@ -70,19 +47,22 @@ class R2R_ADC:
 
 if __name__ == "__main__":
     try:
+        
         show_leds = True
         compare_time = 0.3
-        adc = R2R_ADC(dynamic_range=3.183, compare_time=compare_time, verbose=True, show_leds=show_leds)
+        adc = R2R_ADC(dynamic_range=3.183, compare_time=compare_time, verbose=True,show_leds=show_leds)
         measurement_count = 0
-        
         while True:
             measurement_count += 1
             print(f"\n📊 Измерение #{measurement_count}")
             voltage = adc.get_sc_voltage()
             print(f"Напряжение: {voltage:.3f} В")
             
+            # В быстром режиме - пауза между измерениями
             if not show_leds:
-                time.sleep(0.01)
+                time.sleep(1)
+
 
     finally:
+        # Вызываем деструктор
         adc.deinit()

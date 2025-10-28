@@ -12,7 +12,7 @@ try:
     now_time=time.time()
     while now_time-start_time<duration:
         now_time=time.time()
-        voltage_values.append(adc.get_sc_voltage())
+        voltage_values.append(adc.get_sar_voltage())
         time_values.append(now_time-start_time)
     plt.plot_voltage_vs_time(time_values, voltage_values, 3.29)
     plt.plot_sampling_period_hist(time_values)
